@@ -13,8 +13,7 @@ export async function POST(request: Request) {
 
     console.log("[v0] Converted to profile:", profile)
 
-    // Generate plan using Gemini API
-    const plan = await generateInitialPlan(profile)
+    const plan = await generateInitialPlan(profile, userData)
 
     console.log("[v0] Generated plan successfully")
 

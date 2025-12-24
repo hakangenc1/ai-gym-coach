@@ -8,13 +8,24 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
 import type { UserData } from "@/lib/types"
-import { Activity, Target } from "lucide-react"
+import { Activity, Target, Dumbbell } from "lucide-react"
 
 interface UserDataFormProps {
   onSubmit: (data: UserData) => void
   existingData?: UserData | null
 }
+
+const muscleGroups = [
+  { id: "chest", label: "Göğüs" },
+  { id: "back", label: "Sırt" },
+  { id: "shoulders", label: "Omuz" },
+  { id: "arms", label: "Kol (Biceps/Triceps)" },
+  { id: "legs", label: "Bacak" },
+  { id: "abs", label: "Karın" },
+  { id: "glutes", label: "Kalça" },
+]
 
 export function UserDataForm({ onSubmit, existingData }: UserDataFormProps) {
   const [step, setStep] = useState(1)
@@ -42,6 +53,12 @@ export function UserDataForm({ onSubmit, existingData }: UserDataFormProps) {
     setFormData({ ...formData, [field]: value })
   }
 
+  const toggleMuscleGroup = (muscleId: string) => {
+    const current = formData.targetMuscles || []
+    const updated = current.includes(muscleId) ? current.filter((id) => id !== muscleId) : [...current, muscleId]
+    updateFormData("targetMuscles", updated)
+  }
+
   return (
     <div className="container mx-auto px-4 py-12 max-w-2xl">
       <div className="text-center mb-8">
@@ -56,14 +73,14 @@ export function UserDataForm({ onSubmit, existingData }: UserDataFormProps) {
 
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
-          {[1, 2, 3].map((s) => (
+          {[1, 2, 3, 4].map((s) => (
             <div
               key={s}
               className={`flex-1 h-2 rounded-full mx-1 transition-colors ${s <= step ? "bg-primary" : "bg-muted"}`}
             />
           ))}
         </div>
-        <p className="text-sm text-muted-foreground text-center">Adım {step} / 3</p>
+        <p className="text-sm text-muted-foreground text-center">Adım {step} / 4</p>
       </div>
 
       <Card>
@@ -71,12 +88,14 @@ export function UserDataForm({ onSubmit, existingData }: UserDataFormProps) {
           <CardTitle>
             {step === 1 && "Temel Bilgiler"}
             {step === 2 && "Aktivite ve Hedefler"}
-            {step === 3 && "Ek Bilgiler"}
+            {step === 3 && "Antrenman Tercihleri"}
+            {step === 4 && "Ek Bilgiler"}
           </CardTitle>
           <CardDescription>
             {step === 1 && "Sizin için doğru programı oluşturmak için temel bilgilerinizi öğrenelim"}
             {step === 2 && "Yaşam tarzınız ve hedefleriniz hakkında bilgi verin"}
-            {step === 3 && "Son olarak spor alışkanlıklarınızı öğrenelim"}
+            {step === 3 && "Hangi bölgelere odaklanmak istediğinizi seçin"}
+            {step === 4 && "Son olarak spor alışkanlıklarınızı öğrenelim"}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -186,6 +205,53 @@ export function UserDataForm({ onSubmit, existingData }: UserDataFormProps) {
 
           {step === 3 && (
             <>
+              <div className="space-y-2">
+                <Label htmlFor="exercisesPerDay">Günde Kaç Hareket Yapmak İstersiniz?</Label>
+                <Select
+                  value={formData.exercisesPerDay?.toString()}
+                  onValueChange={(value) => updateFormData("exercisesPerDay", Number.parseInt(value))}
+                >
+                  <SelectTrigger id="exercisesPerDay">
+                    <SelectValue placeholder="Hareket sayısı seçin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="4">4 hareket (Hızlı)</SelectItem>
+                    <SelectItem value="6">6 hareket (Dengeli)</SelectItem>
+                    <SelectItem value="8">8 hareket (Detaylı)</SelectItem>
+                    <SelectItem value="10">10 hareket (Yoğun)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Daha fazla hareket = daha uzun antrenman süresi</p>
+              </div>
+
+              <div className="space-y-3">
+                <Label className="flex items-center gap-2">
+                  <Dumbbell className="w-4 h-4" />
+                  Hangi Bölgelere Odaklanmak İstersiniz? (Opsiyonel)
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Seçim yapmazsanız dengeli bir tam vücut programı hazırlanır
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  {muscleGroups.map((muscle) => (
+                    <div key={muscle.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={muscle.id}
+                        checked={formData.targetMuscles?.includes(muscle.id)}
+                        onCheckedChange={() => toggleMuscleGroup(muscle.id)}
+                      />
+                      <Label htmlFor={muscle.id} className="font-normal cursor-pointer">
+                        {muscle.label}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {step === 4 && (
+            <>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="daysPerWeek">Haftalık Spor Günü</Label>
@@ -240,7 +306,7 @@ export function UserDataForm({ onSubmit, existingData }: UserDataFormProps) {
                 Geri
               </Button>
             )}
-            {step < 3 ? (
+            {step < 4 ? (
               <Button type="button" onClick={handleNext} className="flex-1">
                 Devam Et
               </Button>

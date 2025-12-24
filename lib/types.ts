@@ -9,6 +9,8 @@ export interface UserData {
   daysPerWeek: number
   location: "home" | "gym" | "both"
   restrictions?: string
+  exercisesPerDay?: number
+  targetMuscles?: string[]
 }
 
 export interface UserCalculations {
